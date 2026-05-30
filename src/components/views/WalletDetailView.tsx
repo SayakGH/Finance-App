@@ -3,7 +3,6 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Building,
-  CreditCard,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
@@ -40,16 +39,10 @@ export function WalletDetailView({
         </Button>
         <div>
           <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
-            {wallet.type === "bank" ? (
-              <Building className="h-5 w-5 text-muted-foreground" />
-            ) : (
-              <CreditCard className="h-5 w-5 text-muted-foreground" />
-            )}
+            <Building className="h-5 w-5 text-muted-foreground" />
+
             {wallet.name}
           </h2>
-          <p className="text-xs text-muted-foreground capitalize">
-            {wallet.type} Account
-          </p>
         </div>
       </div>
 
@@ -114,7 +107,9 @@ export function WalletDetailView({
                   </div>
                   <div>
                     <p className="font-semibold text-sm">{tx.category}</p>
-                    <p className="text-xs text-muted-foreground">{tx.date}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {tx.createdAt}
+                    </p>
                   </div>
                 </div>
                 <p

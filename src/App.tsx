@@ -5,6 +5,7 @@ import { ThemeProvider } from "./components/theme-provider";
 import LandingPage from "@/components/pages/LandingPage";
 import AuthPage from "@/components/pages/Auth";
 import Dashboard from "@/components/pages/Dashboard";
+import ProtectedRoute from "./components/ProtectesRoutes";
 
 export default function App() {
   return (
@@ -13,7 +14,15 @@ export default function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
     </ThemeProvider>

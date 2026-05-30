@@ -2,15 +2,39 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { Button } from "./ui/button";
 
+function formatDisplayName(rawName: string, maxLength = 12) {
+  if (!rawName) return "User";
+
+  // 1. Remove extra spaces
+  const cleanName = rawName.trim();
+  if (!cleanName) return "User";
+
+  // 2. Format: Capitalize the first letter of each word
+  const formattedName = cleanName
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+
+  // 3. Truncate if it's too long
+  if (formattedName.length > maxLength) {
+    return `${formattedName.slice(0, maxLength)}...`;
+  }
+
+  return formattedName;
+}
+
 export function Header() {
   const { theme, setTheme } = useTheme();
+
+  const storedName = localStorage.getItem("name") || "User";
+  const name = formatDisplayName(storedName, 12);
 
   return (
     <header className="px-6 pt-5 pb-4 bg-background sticky top-0 z-10">
       <div className="flex justify-between items-center">
         <div>
           <p className="text-sm text-muted-foreground">Welcome back,</p>
-          <h1 className="text-xl font-bold">Sayak</h1>
+          <h1 className="text-xl font-bold">{name}</h1>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -24,7 +48,7 @@ export function Header() {
             <span className="sr-only">Toggle theme</span>
           </Button>
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="font-semibold text-primary">SG</span>
+            <span className="font-semibold text-primary">{name.charAt(0)}</span>
           </div>
         </div>
       </div>

@@ -1,21 +1,27 @@
-import { useState } from "react";
-import { ArrowLeft, Delete, ArrowRight, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Delete, ArrowRight } from "lucide-react";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { walletService } from "@/services/wallet";
+import type { AppWallet } from "@/types";
 
 interface QuickAddViewProps {
   onBack: () => void;
+  defaultWalletId?: string;
 }
 
-export function QuickAddView({ onBack }: QuickAddViewProps) {
+export function QuickAddView({ onBack, defaultWalletId }: QuickAddViewProps) {
   const [amount, setAmount] = useState("0");
+  const [wallets, setWallets] = useState<AppWallet[]>([]);
+  const [selectedWalletId, setSelectedWalletId] = useState(
+    defaultWalletId ?? "",
+  );
 
   // Tags State
   const [tags, setTags] = useState([
@@ -25,12 +31,36 @@ export function QuickAddView({ onBack }: QuickAddViewProps) {
     "Clothes",
     "Transport",
     "Utilities",
+    "Outings",
+    "Subscriptions",
+    "Health",
+    "Education",
+    "Others",
   ]);
   const [selectedTag, setSelectedTag] = useState("Food");
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTagInput, setNewTagInput] = useState("");
+
+  useEffect(() => {
+    const fetchWallets = async () => {
+      try {
+        const data = await walletService.getWallets();
+        setWallets(data.wallets);
+
+        if (defaultWalletId) {
+          setSelectedWalletId(defaultWalletId);
+        } else if (data.wallets.length > 0) {
+          setSelectedWalletId(data.wallets[0].id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch wallets for quick add:", error);
+      }
+    };
+
+    fetchWallets();
+  }, [defaultWalletId]);
 
   const handleNumpad = (val: string) => {
     if (val === "back") {
@@ -40,18 +70,6 @@ export function QuickAddView({ onBack }: QuickAddViewProps) {
     } else {
       setAmount((prev) => (prev === "0" ? val : prev + val));
     }
-  };
-
-  const handleAddCustomTag = () => {
-    const trimmedTag = newTagInput.trim();
-    if (trimmedTag !== "" && !tags.includes(trimmedTag)) {
-      setTags((prev) => [...prev, trimmedTag]);
-      setSelectedTag(trimmedTag);
-    } else if (tags.includes(trimmedTag)) {
-      setSelectedTag(trimmedTag);
-    }
-    setNewTagInput("");
-    setIsModalOpen(false); // Close modal after adding
   };
 
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
@@ -90,54 +108,45 @@ export function QuickAddView({ onBack }: QuickAddViewProps) {
           {/* Category Tags Section */}
           <div className="space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">
+              Wallet
+            </p>
+            <Select
+              value={selectedWalletId}
+              onValueChange={setSelectedWalletId}
+            >
+              <SelectTrigger className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+                <SelectValue placeholder="Select wallet" />
+              </SelectTrigger>
+              <SelectContent>
+                {wallets.map((wallet) => (
+                  <SelectItem key={wallet.id} value={wallet.id}>
+                    {wallet.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">
               Category
             </p>
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <Button
-                  key={tag}
-                  variant={selectedTag === tag ? "default" : "secondary"}
-                  size="sm"
-                  className={`h-8 rounded-full text-xs transition-colors ${
-                    selectedTag !== tag && "bg-secondary/50 hover:bg-secondary"
-                  }`}
-                  onClick={() => setSelectedTag(tag)}
-                >
-                  {tag}
-                </Button>
-              ))}
-
-              {/* Add New Tag Modal */}
-              <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 rounded-full text-xs border-dashed border-muted-foreground/50 text-muted-foreground hover:text-foreground"
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> New
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[325px] rounded-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Create New Category</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <Input
-                      placeholder="e.g., Subscriptions"
-                      value={newTagInput}
-                      onChange={(e) => setNewTagInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleAddCustomTag();
-                      }}
-                      autoFocus
-                    />
-                    <Button onClick={handleAddCustomTag} className="w-full">
-                      Add Tag
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+            <div className="flex items-center gap-3">
+              {/* Shadcn Select */}
+              <Select value={selectedTag} onValueChange={setSelectedTag}>
+                <SelectTrigger className="w-full h-14 bg-secondary/50 border-transparent focus:ring-1 focus:ring-primary rounded-2xl text-base">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-border/50">
+                  {tags.map((tag) => (
+                    <SelectItem
+                      key={tag}
+                      value={tag}
+                      className="rounded-xl cursor-pointer"
+                    >
+                      {tag}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -160,7 +169,8 @@ export function QuickAddView({ onBack }: QuickAddViewProps) {
           <Button
             className="w-full h-14 text-lg font-semibold rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
             onClick={() => {
-              // Handle saving the transaction here using `amount`, `selectedTag`
+              // TODO: submit transaction with selected wallet, amount, and category.
+              if (!selectedWalletId) return;
               onBack();
             }}
           >

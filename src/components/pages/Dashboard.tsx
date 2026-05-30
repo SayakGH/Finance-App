@@ -9,12 +9,6 @@ import { SettingsView } from "@/components/views/SettingsView";
 import { QuickAddView } from "@/components/views/QuickAddView";
 import type { Tab, AppWallet, Transaction } from "@/types";
 
-// Dummy Data
-const initialWallets: AppWallet[] = [
-  { id: "1", name: "Main Checking", balance: 4250.0, type: "bank" },
-  { id: "2", name: "Hardware Wallet", balance: 12450.5, type: "crypto" },
-];
-
 const initialTransactions: Transaction[] = [
   {
     id: "1",
@@ -22,7 +16,8 @@ const initialTransactions: Transaction[] = [
     amount: 150.0,
     type: "expense",
     category: "Groceries",
-    date: "2026-05-29",
+    createdAt: "2026-05-29",
+    updatedAt: "2026-05-29",
   },
   {
     id: "2",
@@ -30,7 +25,8 @@ const initialTransactions: Transaction[] = [
     amount: 3200.0,
     type: "income",
     category: "Freelance",
-    date: "2026-05-28",
+    createdAt: "2026-05-28",
+    updatedAt: "2026-05-28",
   },
   {
     id: "3",
@@ -38,31 +34,32 @@ const initialTransactions: Transaction[] = [
     amount: 45.0,
     type: "expense",
     category: "Gas",
-    date: "2026-05-27",
+    createdAt: "2026-05-27",
+    updatedAt: "2026-05-27",
   },
 ];
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("wallets");
-  const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
+  const [selectedWallet, setSelectedWallet] = useState<AppWallet | null>(null);
   const [isAddingTransaction, setIsAddingTransaction] = useState(false);
 
-  const [wallets] = useState<AppWallet[]>(initialWallets);
   const [transactions] = useState<Transaction[]>(initialTransactions);
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
-    if (tab !== "wallets") setSelectedWalletId(null);
+    if (tab !== "wallets") setSelectedWallet(null);
   };
-
-  const selectedWallet = wallets.find((w) => w.id === selectedWalletId);
 
   return (
     <div className="min-h-screen bg-secondary/30 flex justify-center">
       <div className="w-full max-w-md bg-background min-h-screen shadow-xl relative border-x overflow-x-hidden flex flex-col">
         {isAddingTransaction ? (
           <main className="px-6 pt-12 pb-4 flex-1">
-            <QuickAddView onBack={() => setIsAddingTransaction(false)} />
+            <QuickAddView
+              onBack={() => setIsAddingTransaction(false)}
+              defaultWalletId={selectedWallet?.id}
+            />
           </main>
         ) : (
           <>
@@ -71,19 +68,16 @@ export default function Dashboard() {
             <main
               className={`px-6 pb-24 ${activeTab === "settings" ? "py-8" : "py-4"} flex-1`}
             >
-              {selectedWalletId && selectedWallet ? (
+              {selectedWallet ? (
                 <WalletDetailView
                   wallet={selectedWallet}
                   transactions={transactions}
-                  onBack={() => setSelectedWalletId(null)}
+                  onBack={() => setSelectedWallet(null)}
                 />
               ) : (
                 <>
                   {activeTab === "wallets" && (
-                    <WalletsView
-                      wallets={wallets}
-                      onSelectWallet={setSelectedWalletId}
-                    />
+                    <WalletsView onSelectWallet={setSelectedWallet} />
                   )}
                   {activeTab === "transactions" && (
                     <TransactionsView transactions={transactions} />
@@ -94,11 +88,13 @@ export default function Dashboard() {
               )}
             </main>
 
-            <BottomNav
-              activeTab={activeTab}
-              setActiveTab={handleTabChange}
-              onAddTransaction={() => setIsAddingTransaction(true)}
-            />
+            {!selectedWallet && (
+              <BottomNav
+                activeTab={activeTab}
+                setActiveTab={handleTabChange}
+                onAddTransaction={() => setIsAddingTransaction(true)}
+              />
+            )}
           </>
         )}
       </div>

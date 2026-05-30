@@ -1,22 +1,76 @@
-import { Building, CreditCard, Plus } from "lucide-react";
+import { Building, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import type { AppWallet } from "../../types";
+import { useEffect, useState } from "react";
+import { walletService } from "../../services/wallet";
+import type { AppWallet } from "@/types";
 
 interface WalletsViewProps {
-  wallets: AppWallet[];
-  onSelectWallet: (walletId: string) => void;
+  onSelectWallet: (wallet: AppWallet) => void;
 }
 
-export function WalletsView({ wallets, onSelectWallet }: WalletsViewProps) {
+export function WalletsView({ onSelectWallet }: WalletsViewProps) {
+  const [wallets, setWallets] = useState<AppWallet[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [walletToDelete, setWalletToDelete] = useState<AppWallet | null>(null);
+  const [newWalletName, setNewWalletName] = useState("");
+  const [newWalletBalance, setNewWalletBalance] = useState("");
+
+  const fetchWallets = async () => {
+    try {
+      const data = await walletService.getWallets();
+      setWallets(data.wallets);
+    } catch (error) {
+      console.error("Failed to fetch wallets:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWallets();
+  }, []);
+
+  const handleCreateWallet = async () => {
+    if (!newWalletName.trim()) return;
+
+    try {
+      const initialBalance = newWalletBalance ? parseFloat(newWalletBalance) : 0;
+      const response = await walletService.createWallet({
+        name: newWalletName,
+        initialBalance,
+      });
+
+      setWallets((prev) => [...prev, response.wallet]);
+      setNewWalletName("");
+      setNewWalletBalance("");
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create wallet:", error);
+    }
+  };
+
+  const handleDeleteWallet = async (walletId: string) => {
+    try {
+      await walletService.deleteWallet(walletId);
+      setWallets((prev) => prev.filter((wallet) => wallet.id !== walletId));
+      setWalletToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete wallet:", error);
+    }
+  };
+
   const totalBalance = wallets.reduce((acc, wallet) => acc + wallet.balance, 0);
 
   return (
@@ -33,7 +87,7 @@ export function WalletsView({ wallets, onSelectWallet }: WalletsViewProps) {
       {/* Add New Wallet Header Section */}
       <div className="flex items-center justify-between mt-6 mb-2">
         <h3 className="text-lg font-semibold tracking-tight">Your Wallets</h3>
-        <Dialog>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"
@@ -48,44 +102,100 @@ export function WalletsView({ wallets, onSelectWallet }: WalletsViewProps) {
               <DialogTitle>Add New Wallet</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <Input placeholder="Wallet Name" />
-              <Input type="number" placeholder="Initial Balance" />
-              <Button className="w-full">Create Wallet</Button>
+              <Input
+                placeholder="Wallet Name"
+                value={newWalletName}
+                onChange={(e) => setNewWalletName(e.target.value)}
+              />
+              <Input
+                type="number"
+                placeholder="Initial Balance"
+                value={newWalletBalance}
+                onChange={(e) => setNewWalletBalance(e.target.value)}
+              />
+              <Button className="w-full" onClick={handleCreateWallet}>
+                Create Wallet
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-3">
-        {wallets.map((wallet) => (
-          <Card
-            key={wallet.id}
-            className="active:scale-[0.98] transition-transform cursor-pointer hover:bg-accent/50"
-            onClick={() => onSelectWallet(wallet.id)}
-          >
-            <CardContent className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-foreground">
-                  {wallet.type === "bank" ? (
+      {isLoading ? (
+        <p className="text-center text-muted-foreground py-4">Loading wallets...</p>
+      ) : (
+        <div className="grid gap-3">
+          {wallets.map((wallet) => (
+            <Card
+              key={wallet.id}
+              className="active:scale-[0.98] transition-transform cursor-pointer hover:bg-accent/50"
+              onClick={() => onSelectWallet(wallet)}
+            >
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-foreground">
                     <Building className="h-5 w-5" />
-                  ) : (
-                    <CreditCard className="h-5 w-5" />
-                  )}
+                  </div>
+                  <div>
+                    <p className="font-semibold">{wallet.name}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold">{wallet.name}</p>
-                  <p className="text-xs text-muted-foreground capitalize">
-                    {wallet.type}
-                  </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold">${wallet.balance.toLocaleString()}</p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setWalletToDelete(wallet);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-              </div>
-              <p className="font-semibold">
-                ${wallet.balance.toLocaleString()}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {wallets.length === 0 && !isLoading && (
+        <p className="text-center text-muted-foreground py-4">
+          No wallets yet. Click the + button to create one.
+        </p>
+      )}
+
+      <Dialog
+        open={Boolean(walletToDelete)}
+        onOpenChange={(open) => {
+          if (!open) setWalletToDelete(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Wallet</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{walletToDelete?.name}</span>? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWalletToDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() =>
+                walletToDelete && handleDeleteWallet(walletToDelete.id)
+              }
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -58,7 +58,7 @@ export function TransactionsView({ transactions }: TransactionsViewProps) {
               </div>
               <div>
                 <p className="font-medium text-sm">{tx.category}</p>
-                <p className="text-xs text-muted-foreground">{tx.date}</p>
+                <p className="text-xs text-muted-foreground">{tx.createdAt}</p>
               </div>
             </div>
             <p
