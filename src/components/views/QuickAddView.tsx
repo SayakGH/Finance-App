@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { ArrowLeft, Tag, Delete, ArrowRight } from "lucide-react";
-import { Switch } from "../ui/switch";
+import { ArrowLeft, Delete, ArrowRight, Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 
 interface QuickAddViewProps {
   onBack: () => void;
@@ -10,6 +16,21 @@ interface QuickAddViewProps {
 
 export function QuickAddView({ onBack }: QuickAddViewProps) {
   const [amount, setAmount] = useState("0");
+
+  // Tags State
+  const [tags, setTags] = useState([
+    "Food",
+    "Groceries",
+    "Shopping",
+    "Clothes",
+    "Transport",
+    "Utilities",
+  ]);
+  const [selectedTag, setSelectedTag] = useState("Food");
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTagInput, setNewTagInput] = useState("");
 
   const handleNumpad = (val: string) => {
     if (val === "back") {
@@ -21,12 +42,24 @@ export function QuickAddView({ onBack }: QuickAddViewProps) {
     }
   };
 
+  const handleAddCustomTag = () => {
+    const trimmedTag = newTagInput.trim();
+    if (trimmedTag !== "" && !tags.includes(trimmedTag)) {
+      setTags((prev) => [...prev, trimmedTag]);
+      setSelectedTag(trimmedTag);
+    } else if (tags.includes(trimmedTag)) {
+      setSelectedTag(trimmedTag);
+    }
+    setNewTagInput("");
+    setIsModalOpen(false); // Close modal after adding
+  };
+
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"];
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 relative">
+      <div className="flex items-center justify-between mb-6 relative">
         <Button
           variant="ghost"
           size="icon"
@@ -40,11 +73,11 @@ export function QuickAddView({ onBack }: QuickAddViewProps) {
         </h2>
       </div>
 
-      {/* Main Content Wrapper (flex-1 pushes numpad to bottom) */}
-      <div className="flex-1 flex flex-col justify-between pb-6">
+      {/* Main Content Wrapper - Removed justify-between */}
+      <div className="flex-1 flex flex-col pb-2">
         <div>
           {/* Amount Display */}
-          <div className="text-center space-y-1 mb-10">
+          <div className="text-center space-y-1 mb-8">
             <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
               Amount Spent
             </p>
@@ -54,32 +87,63 @@ export function QuickAddView({ onBack }: QuickAddViewProps) {
             </div>
           </div>
 
-          {/* Inputs */}
-          <div className="space-y-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-muted-foreground">
-                <Tag className="h-5 w-5" />
-              </div>
-              <Input
-                className="pl-10 h-14 bg-secondary/50 border-transparent focus-visible:ring-1 focus-visible:ring-primary rounded-2xl text-base"
-                placeholder="What was it for? (e.g. Uber)"
-              />
-            </div>
+          {/* Category Tags Section */}
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">
+              Category
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <Button
+                  key={tag}
+                  variant={selectedTag === tag ? "default" : "secondary"}
+                  size="sm"
+                  className={`h-8 rounded-full text-xs transition-colors ${
+                    selectedTag !== tag && "bg-secondary/50 hover:bg-secondary"
+                  }`}
+                  onClick={() => setSelectedTag(tag)}
+                >
+                  {tag}
+                </Button>
+              ))}
 
-            <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-2xl">
-              <div>
-                <p className="text-sm font-medium">Recurring Expense?</p>
-                <p className="text-xs text-muted-foreground">
-                  Auto-add next month
-                </p>
-              </div>
-              <Switch />
+              {/* Add New Tag Modal */}
+              <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-full text-xs border-dashed border-muted-foreground/50 text-muted-foreground hover:text-foreground"
+                  >
+                    <Plus className="h-3 w-3 mr-1" /> New
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[325px] rounded-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Create New Category</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <Input
+                      placeholder="e.g., Subscriptions"
+                      value={newTagInput}
+                      onChange={(e) => setNewTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleAddCustomTag();
+                      }}
+                      autoFocus
+                    />
+                    <Button onClick={handleAddCustomTag} className="w-full">
+                      Add Tag
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
 
-        {/* Numpad & Action Button fixed to bottom area */}
-        <div className="mt-auto pt-6">
+        {/* Numpad & Action Button - Removed mt-auto, added specific top margin (mt-8) */}
+        <div className="mt-8">
           <div className="grid grid-cols-3 gap-3 mb-6">
             {keys.map((key) => (
               <Button
@@ -95,7 +159,10 @@ export function QuickAddView({ onBack }: QuickAddViewProps) {
 
           <Button
             className="w-full h-14 text-lg font-semibold rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-            onClick={onBack}
+            onClick={() => {
+              // Handle saving the transaction here using `amount`, `selectedTag`
+              onBack();
+            }}
           >
             Add Transaction <ArrowRight className="h-5 w-5" />
           </Button>

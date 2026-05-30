@@ -6,7 +6,7 @@ export function Header() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="px-6 pt-12 pb-4 bg-background sticky top-0 z-10">
+    <header className="px-6 pt-5 pb-4 bg-background sticky top-0 z-10">
       <div className="flex justify-between items-center">
         <div>
           <p className="text-sm text-muted-foreground">Welcome back,</p>
