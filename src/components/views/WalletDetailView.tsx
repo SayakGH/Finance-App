@@ -3,27 +3,65 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Building,
+  Trash2,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
+import { deleteTransaction, getTransactions } from "@/api/transactions";
 import type { AppWallet, Transaction } from "../../types";
 
 interface WalletDetailViewProps {
   wallet: AppWallet;
-  transactions: Transaction[];
   onBack: () => void;
+  onAddTransaction: (type: "income" | "expense") => void;
+  refreshSignal?: number;
 }
 
 export function WalletDetailView({
   wallet,
-  transactions,
   onBack,
+  onAddTransaction,
+  refreshSignal = 0,
 }: WalletDetailViewProps) {
-  const walletTransactions = transactions.filter(
-    (tx) => tx.walletId === wallet.id,
+  const [walletTransactions, setWalletTransactions] = useState<Transaction[]>(
+    [],
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const fetchWalletTransactions = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getTransactions(wallet.id);
+        setWalletTransactions(response.transactions ?? []);
+      } catch (error) {
+        console.error("Failed to fetch wallet transactions:", error);
+        setWalletTransactions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWalletTransactions();
+  }, [wallet.id, refreshSignal]);
+
+  const handleDeleteTransaction = async (transactionId: string) => {
+    try {
+      setDeletingTransactionId(transactionId);
+      await deleteTransaction(transactionId);
+      setWalletTransactions((prev) => prev.filter((tx) => tx.id !== transactionId));
+    } catch (error) {
+      console.error("Failed to delete transaction:", error);
+    } finally {
+      setDeletingTransactionId(null);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -53,8 +91,8 @@ export function WalletDetailView({
             Available Balance
           </p>
           <h1 className="text-5xl font-extrabold tracking-tight">
-            $
-            {wallet.balance.toLocaleString("en-US", {
+            ₹
+            {wallet.balance.toLocaleString("en-IN", {
               minimumFractionDigits: 2,
             })}
           </h1>
@@ -66,6 +104,7 @@ export function WalletDetailView({
         <Button
           variant="outline"
           className="h-16 flex flex-col gap-1 rounded-2xl bg-card border-border hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/30 transition-colors"
+          onClick={() => onAddTransaction("income")}
         >
           <ArrowDownToLine className="h-5 w-5" />
           <span className="text-xs font-semibold">Add Money</span>
@@ -73,6 +112,7 @@ export function WalletDetailView({
         <Button
           variant="outline"
           className="h-16 flex flex-col gap-1 rounded-2xl bg-card border-border hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/30 transition-colors"
+          onClick={() => onAddTransaction("expense")}
         >
           <ArrowUpFromLine className="h-5 w-5" />
           <span className="text-xs font-semibold">Add Expense</span>
@@ -84,7 +124,11 @@ export function WalletDetailView({
         <h3 className="text-lg font-semibold tracking-tight mb-4">
           Past Transactions
         </h3>
-        {walletTransactions.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-10 text-muted-foreground text-sm">
+            Loading transactions...
+          </div>
+        ) : walletTransactions.length === 0 ? (
           <div className="text-center py-10 text-muted-foreground text-sm">
             No transactions found for this wallet.
           </div>
@@ -106,17 +150,30 @@ export function WalletDetailView({
                     )}
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">{tx.category}</p>
+                    <p className="font-semibold text-sm">
+                      {tx.category || (tx.type === "income" ? "Income" : "Uncategorized")}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {tx.createdAt}
                     </p>
                   </div>
                 </div>
-                <p
-                  className={`font-bold ${tx.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}
-                >
-                  {tx.type === "income" ? "+" : "-"}${tx.amount.toFixed(2)}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p
+                    className={`font-bold ${tx.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}
+                  >
+                    {tx.type === "income" ? "+" : "-"}₹{tx.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    onClick={() => handleDeleteTransaction(tx.id)}
+                    disabled={deletingTransactionId === tx.id}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

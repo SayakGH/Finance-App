@@ -26,12 +26,15 @@ export const createTransaction = async (
   return res.data;
 };
 
-export const getTransactions = async () => {
-  const res = await api.get<IGetTransactionsResponse>("/transactions", {
-    headers: {
-      Authorization: `Bearer ${getToken()}`,
+export const getTransactions = async (walletId: string) => {
+  const res = await api.get<IGetTransactionsResponse>(
+    `/transactions/${walletId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
     },
-  });
+  );
   return res.data;
 };
 
@@ -44,5 +47,14 @@ export const deleteTransaction = async (transactionId: string) => {
       },
     },
   );
+  return res.data;
+};
+
+export const recentActivity = async () => {
+  const res = await api.get<IGetTransactionsResponse>(`/transactions/recent`, {
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
   return res.data;
 };

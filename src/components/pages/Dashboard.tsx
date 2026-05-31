@@ -7,44 +7,16 @@ import { AnalyticsView } from "@/components/views/AnalyticsView";
 import { WalletDetailView } from "@/components/views/WalletDetailView";
 import { SettingsView } from "@/components/views/SettingsView";
 import { QuickAddView } from "@/components/views/QuickAddView";
-import type { Tab, AppWallet, Transaction } from "@/types";
-
-const initialTransactions: Transaction[] = [
-  {
-    id: "1",
-    walletId: "1",
-    amount: 150.0,
-    type: "expense",
-    category: "Groceries",
-    createdAt: "2026-05-29",
-    updatedAt: "2026-05-29",
-  },
-  {
-    id: "2",
-    walletId: "1",
-    amount: 3200.0,
-    type: "income",
-    category: "Freelance",
-    createdAt: "2026-05-28",
-    updatedAt: "2026-05-28",
-  },
-  {
-    id: "3",
-    walletId: "2",
-    amount: 45.0,
-    type: "expense",
-    category: "Gas",
-    createdAt: "2026-05-27",
-    updatedAt: "2026-05-27",
-  },
-];
+import type { Tab, AppWallet } from "@/types";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("wallets");
   const [selectedWallet, setSelectedWallet] = useState<AppWallet | null>(null);
   const [isAddingTransaction, setIsAddingTransaction] = useState(false);
-
-  const [transactions] = useState<Transaction[]>(initialTransactions);
+  const [quickAddMode, setQuickAddMode] = useState<"expense" | "income">(
+    "expense",
+  );
+  const [walletDetailRefreshSignal, setWalletDetailRefreshSignal] = useState(0);
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
@@ -59,6 +31,10 @@ export default function Dashboard() {
             <QuickAddView
               onBack={() => setIsAddingTransaction(false)}
               defaultWalletId={selectedWallet?.id}
+              defaultMode={quickAddMode}
+              onTransactionCreated={() => {
+                setWalletDetailRefreshSignal((prev) => prev + 1);
+              }}
             />
           </main>
         ) : (
@@ -71,17 +47,19 @@ export default function Dashboard() {
               {selectedWallet ? (
                 <WalletDetailView
                   wallet={selectedWallet}
-                  transactions={transactions}
                   onBack={() => setSelectedWallet(null)}
+                  onAddTransaction={(type) => {
+                    setQuickAddMode(type);
+                    setIsAddingTransaction(true);
+                  }}
+                  refreshSignal={walletDetailRefreshSignal}
                 />
               ) : (
                 <>
                   {activeTab === "wallets" && (
                     <WalletsView onSelectWallet={setSelectedWallet} />
                   )}
-                  {activeTab === "transactions" && (
-                    <TransactionsView transactions={transactions} />
-                  )}
+                  {activeTab === "transactions" && <TransactionsView />}
                   {activeTab === "analytics" && <AnalyticsView />}
                   {activeTab === "settings" && <SettingsView />}
                 </>
@@ -92,7 +70,10 @@ export default function Dashboard() {
               <BottomNav
                 activeTab={activeTab}
                 setActiveTab={handleTabChange}
-                onAddTransaction={() => setIsAddingTransaction(true)}
+                onAddTransaction={() => {
+                  setQuickAddMode("expense");
+                  setIsAddingTransaction(true);
+                }}
               />
             )}
           </>

@@ -79,7 +79,7 @@ export function WalletsView({ onSelectWallet }: WalletsViewProps) {
         <CardContent className="pt-6">
           <p className="text-sm font-medium opacity-80 mb-1">Total Balance</p>
           <h2 className="text-4xl font-bold tracking-tight">
-            ${totalBalance.toLocaleString()}
+            ₹{totalBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </h2>
         </CardContent>
       </Card>
@@ -141,7 +141,9 @@ export function WalletsView({ onSelectWallet }: WalletsViewProps) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold">${wallet.balance.toLocaleString()}</p>
+                  <p className="font-semibold">
+                    ₹{wallet.balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                  </p>
                   <Button
                     variant="ghost"
                     size="icon"

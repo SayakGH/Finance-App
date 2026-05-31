@@ -9,19 +9,29 @@ import {
   SelectValue,
 } from "../ui/select";
 import { walletService } from "@/services/wallet";
+import { createTransaction } from "@/api/transactions";
 import type { AppWallet } from "@/types";
 
 interface QuickAddViewProps {
   onBack: () => void;
   defaultWalletId?: string;
+  defaultMode?: "expense" | "income";
+  onTransactionCreated?: () => void;
 }
 
-export function QuickAddView({ onBack, defaultWalletId }: QuickAddViewProps) {
+export function QuickAddView({
+  onBack,
+  defaultWalletId,
+  defaultMode,
+  onTransactionCreated,
+}: QuickAddViewProps) {
   const [amount, setAmount] = useState("0");
   const [wallets, setWallets] = useState<AppWallet[]>([]);
   const [selectedWalletId, setSelectedWalletId] = useState(
     defaultWalletId ?? "",
   );
+  const [mode, setMode] = useState<"expense" | "income">(defaultMode ?? "expense");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Tags State
   const [tags, setTags] = useState([
@@ -38,10 +48,6 @@ export function QuickAddView({ onBack, defaultWalletId }: QuickAddViewProps) {
     "Others",
   ]);
   const [selectedTag, setSelectedTag] = useState("Food");
-
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newTagInput, setNewTagInput] = useState("");
 
   useEffect(() => {
     const fetchWallets = async () => {
@@ -61,6 +67,12 @@ export function QuickAddView({ onBack, defaultWalletId }: QuickAddViewProps) {
 
     fetchWallets();
   }, [defaultWalletId]);
+
+  useEffect(() => {
+    if (defaultMode) {
+      setMode(defaultMode);
+    }
+  }, [defaultMode]);
 
   const handleNumpad = (val: string) => {
     if (val === "back") {
@@ -86,21 +98,38 @@ export function QuickAddView({ onBack, defaultWalletId }: QuickAddViewProps) {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h2 className="text-lg font-semibold w-full text-center">
-          Add Expense
-        </h2>
+        <h2 className="text-lg font-semibold w-full text-center">Quick Add</h2>
       </div>
 
       {/* Main Content Wrapper - Removed justify-between */}
       <div className="flex-1 flex flex-col pb-2">
         <div>
+          <div className="grid grid-cols-2 gap-2 mb-6 p-1 bg-secondary/60 rounded-2xl">
+            <Button
+              type="button"
+              variant={mode === "expense" ? "default" : "ghost"}
+              className="rounded-xl h-10"
+              onClick={() => setMode("expense")}
+            >
+              Add Expense
+            </Button>
+            <Button
+              type="button"
+              variant={mode === "income" ? "default" : "ghost"}
+              className="rounded-xl h-10"
+              onClick={() => setMode("income")}
+            >
+              Add Money
+            </Button>
+          </div>
+
           {/* Amount Display */}
           <div className="text-center space-y-1 mb-8">
             <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
-              Amount Spent
+              {mode === "expense" ? "Amount Spent" : "Amount Added"}
             </p>
             <div className="flex items-center justify-center gap-1 text-5xl font-bold tracking-tight">
-              <span className="text-2xl text-muted-foreground mt-2">$</span>
+              <span className="text-2xl text-muted-foreground mt-2">₹</span>
               <span>{amount || "0"}</span>
             </div>
           </div>
@@ -126,28 +155,31 @@ export function QuickAddView({ onBack, defaultWalletId }: QuickAddViewProps) {
               </SelectContent>
             </Select>
 
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">
-              Category
-            </p>
-            <div className="flex items-center gap-3">
-              {/* Shadcn Select */}
-              <Select value={selectedTag} onValueChange={setSelectedTag}>
-                <SelectTrigger className="w-full h-14 bg-secondary/50 border-transparent focus:ring-1 focus:ring-primary rounded-2xl text-base">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-border/50">
-                  {tags.map((tag) => (
-                    <SelectItem
-                      key={tag}
-                      value={tag}
-                      className="rounded-xl cursor-pointer"
-                    >
-                      {tag}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {mode === "expense" && (
+              <>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">
+                  Category
+                </p>
+                <div className="flex items-center gap-3">
+                  <Select value={selectedTag} onValueChange={setSelectedTag}>
+                    <SelectTrigger className="w-full h-14 bg-secondary/50 border-transparent focus:ring-1 focus:ring-primary rounded-2xl text-base">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-border/50">
+                      {tags.map((tag) => (
+                        <SelectItem
+                          key={tag}
+                          value={tag}
+                          className="rounded-xl cursor-pointer"
+                        >
+                          {tag}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -168,13 +200,32 @@ export function QuickAddView({ onBack, defaultWalletId }: QuickAddViewProps) {
 
           <Button
             className="w-full h-14 text-lg font-semibold rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-            onClick={() => {
-              // TODO: submit transaction with selected wallet, amount, and category.
-              if (!selectedWalletId) return;
-              onBack();
+            disabled={isSubmitting}
+            onClick={async () => {
+              const parsedAmount = Number.parseFloat(amount);
+              if (!selectedWalletId || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+                return;
+              }
+
+              try {
+                setIsSubmitting(true);
+                await createTransaction(
+                  selectedWalletId,
+                  parsedAmount,
+                  mode,
+                  mode === "income" ? "" : selectedTag,
+                );
+                onTransactionCreated?.();
+                onBack();
+              } catch (error) {
+                console.error("Failed to create transaction:", error);
+              } finally {
+                setIsSubmitting(false);
+              }
             }}
           >
-            Add Transaction <ArrowRight className="h-5 w-5" />
+            {mode === "expense" ? "Add Expense" : "Add Money"}{" "}
+            <ArrowRight className="h-5 w-5" />
           </Button>
         </div>
       </div>
