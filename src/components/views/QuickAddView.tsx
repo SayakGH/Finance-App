@@ -30,11 +30,13 @@ export function QuickAddView({
   const [selectedWalletId, setSelectedWalletId] = useState(
     defaultWalletId ?? "",
   );
-  const [mode, setMode] = useState<"expense" | "income">(defaultMode ?? "expense");
+  const [mode, setMode] = useState<"expense" | "income">(
+    defaultMode ?? "expense",
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Tags State
-  const [tags, setTags] = useState([
+  const [tags] = useState([
     "Food",
     "Groceries",
     "Shopping",
@@ -203,7 +205,11 @@ export function QuickAddView({
             disabled={isSubmitting}
             onClick={async () => {
               const parsedAmount = Number.parseFloat(amount);
-              if (!selectedWalletId || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+              if (
+                !selectedWalletId ||
+                Number.isNaN(parsedAmount) ||
+                parsedAmount <= 0
+              ) {
                 return;
               }
 
