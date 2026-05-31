@@ -271,25 +271,38 @@ export function AnalyticsView() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Category-Wise Breakdown (Monthly)</CardTitle>
             </CardHeader>
-            <CardContent className="h-80 pt-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthFilteredCategory} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" fontSize={12} />
-                  <YAxis fontSize={12} />
-                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                  <Legend />
-                  {tags.map((tag, index) => (
-                    <Bar
-                      key={tag}
-                      dataKey={tag}
-                      stackId="category"
-                      fill={COLORS[index % COLORS.length]}
-                      radius={index === tags.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
+            <CardContent className="pt-2">
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthFilteredCategory} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" fontSize={12} />
+                    <YAxis fontSize={12} />
+                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                    {tags.map((tag, index) => (
+                      <Bar
+                        key={tag}
+                        dataKey={tag}
+                        stackId="category"
+                        fill={COLORS[index % COLORS.length]}
+                        radius={index === tags.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
+                      />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">
+                {tags.map((tag, index) => (
+                  <div key={tag} className="flex items-center gap-1.5 text-muted-foreground">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
                     />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
+                    <span>{tag}</span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
