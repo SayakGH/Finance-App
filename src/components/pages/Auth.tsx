@@ -170,7 +170,7 @@ export default function AuthPage() {
                   Enter your email and password to access your account.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -210,7 +210,7 @@ export default function AuthPage() {
               </CardContent>
               <CardFooter>
                 <Button
-                  className="w-full"
+                  className="w-full mt-4"
                   type="submit"
                   disabled={loginLoading}
                 >
@@ -238,7 +238,7 @@ export default function AuthPage() {
                   Enter your details below to create your account.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="new-name">Full Name</Label>
                   <Input
@@ -289,7 +289,7 @@ export default function AuthPage() {
               </CardContent>
               <CardFooter>
                 <Button
-                  className="w-full"
+                  className="w-full mt-4"
                   type="submit"
                   disabled={signupLoading}
                 >

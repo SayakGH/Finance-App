@@ -78,30 +78,29 @@ export function WalletDetailView({
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-2">
+    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300 pb-3">
+      <div className="flex items-center gap-3 mb-1">
         <Button
           variant="ghost"
           size="icon"
           onClick={onBack}
-          className="rounded-full -ml-2"
+          className="rounded-full -ml-2 hover:bg-secondary/80"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
-            <Building className="h-5 w-5 text-muted-foreground" />
-
+          <h2 className="text-xl font-bold tracking-tight flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <Building className="h-4 w-4" />
+            </div>
             {wallet.name}
           </h2>
         </div>
       </div>
 
-      {/* Balance Card */}
-      <Card className="bg-primary text-primary-foreground border-none shadow-lg">
+      <Card className="border-none bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/20">
         <CardContent className="pt-8 pb-8 flex flex-col items-center justify-center text-center">
-          <p className="text-sm font-medium opacity-80 mb-2">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] opacity-85 mb-2">
             Available Balance
           </p>
           <h1 className="text-5xl font-extrabold tracking-tight">
@@ -113,11 +112,10 @@ export function WalletDetailView({
         </CardContent>
       </Card>
 
-      {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-4">
         <Button
           variant="outline"
-          className="h-16 flex flex-col gap-1 rounded-2xl bg-card border-border hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/30 transition-colors"
+          className="h-16 flex flex-col gap-1 rounded-2xl bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/40 transition-colors"
           onClick={() => onAddTransaction("income")}
         >
           <ArrowDownToLine className="h-5 w-5" />
@@ -125,7 +123,7 @@ export function WalletDetailView({
         </Button>
         <Button
           variant="outline"
-          className="h-16 flex flex-col gap-1 rounded-2xl bg-card border-border hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/30 transition-colors"
+          className="h-16 flex flex-col gap-1 rounded-2xl bg-rose-500/5 border-rose-500/20 hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/40 transition-colors"
           onClick={() => onAddTransaction("expense")}
         >
           <ArrowUpFromLine className="h-5 w-5" />
@@ -133,7 +131,6 @@ export function WalletDetailView({
         </Button>
       </div>
 
-      {/* Past Expenses/Transactions */}
       <div>
         <h3 className="text-lg font-semibold tracking-tight mb-4">
           Past Transactions
@@ -151,20 +148,20 @@ export function WalletDetailView({
             {walletTransactions.map((tx) => (
               <div
                 key={tx.id}
-                className="flex items-center justify-between p-3 rounded-2xl border bg-card text-card-foreground shadow-sm"
+                className="flex items-center justify-between p-3.5 rounded-2xl border border-border/60 bg-card/75 backdrop-blur-sm text-card-foreground shadow-sm transition-all duration-200 hover:border-primary/20 hover:shadow-md hover:shadow-primary/10"
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`h-12 w-12 rounded-xl flex items-center justify-center ${tx.type === "income" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/10 text-rose-600 dark:text-rose-400"}`}
+                    className={`h-11 w-11 rounded-xl flex items-center justify-center ${tx.type === "income" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/10 text-rose-600 dark:text-rose-400"}`}
                   >
                     {tx.type === "income" ? (
-                      <TrendingUp className="h-5 w-5" />
+                      <TrendingUp className="h-4.5 w-4.5" />
                     ) : (
-                      <TrendingDown className="h-5 w-5" />
+                      <TrendingDown className="h-4.5 w-4.5" />
                     )}
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">
+                    <p className="font-semibold text-sm tracking-tight">
                       {tx.category || (tx.type === "income" ? "Income" : "Uncategorized")}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -174,7 +171,7 @@ export function WalletDetailView({
                 </div>
                 <div className="flex items-center gap-2">
                   <p
-                    className={`font-bold ${tx.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}
+                    className={`font-bold text-[15px] ${tx.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}
                   >
                     {tx.type === "income" ? "+" : "-"}₹{tx.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </p>

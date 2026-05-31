@@ -74,25 +74,26 @@ export function WalletsView({ onSelectWallet }: WalletsViewProps) {
   const totalBalance = wallets.reduce((acc, wallet) => acc + wallet.balance, 0);
 
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <Card className="bg-primary text-primary-foreground border-none">
-        <CardContent className="pt-6">
-          <p className="text-sm font-medium opacity-80 mb-1">Total Balance</p>
-          <h2 className="text-4xl font-bold tracking-tight">
+    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <Card className="border-none bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/20">
+        <CardContent className="pt-6 pb-7">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] opacity-80 mb-2">
+            Total Balance
+          </p>
+          <h2 className="text-4xl font-extrabold tracking-tight">
             ₹{totalBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </h2>
         </CardContent>
       </Card>
 
-      {/* Add New Wallet Header Section */}
-      <div className="flex items-center justify-between mt-6 mb-2">
+      <div className="flex items-center justify-between mt-6 mb-1">
         <h3 className="text-lg font-semibold tracking-tight">Your Wallets</h3>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full bg-secondary/50"
+              className="h-9 w-9 rounded-full bg-secondary/70 backdrop-blur-sm hover:bg-secondary"
             >
               <Plus className="h-4 w-4" />
             </Button>
@@ -128,32 +129,33 @@ export function WalletsView({ onSelectWallet }: WalletsViewProps) {
           {wallets.map((wallet) => (
             <Card
               key={wallet.id}
-              className="active:scale-[0.98] transition-transform cursor-pointer hover:bg-accent/50"
+              className="cursor-pointer border-border/60 bg-card/70 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md hover:shadow-primary/10 active:scale-[0.99]"
               onClick={() => onSelectWallet(wallet)}
             >
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-foreground">
-                    <Building className="h-5 w-5" />
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                    <Building className="h-4.5 w-4.5" />
                   </div>
                   <div>
-                    <p className="font-semibold">{wallet.name}</p>
+                    <p className="font-semibold text-[15px] tracking-tight">{wallet.name}</p>
+                    <p className="text-xs text-muted-foreground">Personal Wallet</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold">
+                  <p className="font-semibold text-[15px]">
                     ₹{wallet.balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </p>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    className="h-7 w-7 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
                     onClick={(e) => {
                       e.stopPropagation();
                       setWalletToDelete(wallet);
                     }}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </CardContent>
