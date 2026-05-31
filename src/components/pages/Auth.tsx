@@ -51,6 +51,7 @@ export default function AuthPage() {
 
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("name", data.user.name);
+      localStorage.setItem("skipValidateOnce", "true");
 
       toast.custom((t: any) => (
         <div
@@ -107,6 +108,7 @@ export default function AuthPage() {
 
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("name", data.user.name);
+      localStorage.setItem("skipValidateOnce", "true");
 
       toast.custom((t: any) => (
         <div

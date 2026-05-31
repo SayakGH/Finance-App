@@ -31,6 +31,20 @@ export interface IAuthResponse {
   user: IUser;
 }
 
+export interface IValidateTokenResponse {
+  success: boolean;
+}
+
+export interface ILogoutResponse {
+  success?: boolean;
+  message?: string;
+}
+
+export interface IUpdateUserResponse {
+  message?: string;
+  user: IUser;
+}
+
 export interface IUser {
   name: string;
   _id: string;
@@ -74,4 +88,43 @@ export interface IGetTransactionsResponse {
 export interface IDeleteTransactionResponse {
   message: string;
   transaction: Transaction;
+}
+
+// --- Analytics Types ---
+
+export interface IMonthlyBreakdown {
+  month: string;
+  income: number;
+  expense: number;
+  count: number;
+}
+
+export interface IGetMonthlyBreakdownResponse {
+  year: number;
+  monthlyBreakdown: IMonthlyBreakdown[];
+}
+
+export interface ICategoryBreakdown {
+  month: string;
+  categories: Record<string, number>; // Flexible object for dynamic category names
+  totalExpense: number;
+}
+
+export interface IGetCategoryBreakdownResponse {
+  year: number;
+  monthlyCategoryBreakdown: ICategoryBreakdown[];
+}
+
+export interface ISummaryDetails {
+  totalIncome: number;
+  totalExpense: number;
+  savings: number;
+  incomeCount: number;
+  expenseCount: number;
+  savingsRate: number;
+}
+
+export interface IGetAnalyticsSummaryResponse {
+  year: number;
+  summary: ISummaryDetails;
 }

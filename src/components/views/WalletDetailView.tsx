@@ -20,6 +20,20 @@ interface WalletDetailViewProps {
   refreshSignal?: number;
 }
 
+const formatIndianDateTime = (dateValue: string) => {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return dateValue;
+  return date.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
 export function WalletDetailView({
   wallet,
   onBack,
@@ -154,7 +168,7 @@ export function WalletDetailView({
                       {tx.category || (tx.type === "income" ? "Income" : "Uncategorized")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {tx.createdAt}
+                      {formatIndianDateTime(tx.createdAt)}
                     </p>
                   </div>
                 </div>
@@ -167,11 +181,12 @@ export function WalletDetailView({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    className="h-7 w-7 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
                     onClick={() => handleDeleteTransaction(tx.id)}
                     disabled={deletingTransactionId === tx.id}
+                    aria-label="Delete transaction"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>

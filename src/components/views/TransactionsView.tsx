@@ -1,13 +1,25 @@
 import { useEffect, useState } from "react";
-import { Trash2, TrendingDown, TrendingUp } from "lucide-react";
-import { deleteTransaction, recentActivity } from "@/api/transactions";
-import { Button } from "../ui/button";
+import { TrendingDown, TrendingUp } from "lucide-react";
+import { recentActivity } from "@/api/transactions";
 import type { Transaction } from "../../types";
+
+const formatIndianDateTime = (dateValue: string) => {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return dateValue;
+  return date.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
 
 export function TransactionsView() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRecentActivity = async () => {
@@ -25,18 +37,6 @@ export function TransactionsView() {
 
     fetchRecentActivity();
   }, []);
-
-  const handleDeleteTransaction = async (transactionId: string) => {
-    try {
-      setDeletingTransactionId(transactionId);
-      await deleteTransaction(transactionId);
-      setTransactions((prev) => prev.filter((tx) => tx.id !== transactionId));
-    } catch (error) {
-      console.error("Failed to delete transaction:", error);
-    } finally {
-      setDeletingTransactionId(null);
-    }
-  };
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -73,24 +73,17 @@ export function TransactionsView() {
                   <p className="font-medium text-sm">
                     {tx.category || (tx.type === "income" ? "Income" : "Uncategorized")}
                   </p>
-                  <p className="text-xs text-muted-foreground">{tx.createdAt}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatIndianDateTime(tx.createdAt)}
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center">
                 <p
                   className={`font-semibold ${tx.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}
                 >
                   {tx.type === "income" ? "+" : "-"}₹{tx.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </p>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  onClick={() => handleDeleteTransaction(tx.id)}
-                  disabled={deletingTransactionId === tx.id}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           ))}
