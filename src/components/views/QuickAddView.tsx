@@ -17,7 +17,7 @@ interface QuickAddViewProps {
   onBack: () => void;
   defaultWalletId?: string;
   defaultMode?: "expense" | "income";
-  onTransactionCreated?: () => void;
+  onTransactionCreated?: (newWalletBalance?: number) => void;
 }
 
 export function QuickAddView({
@@ -227,14 +227,14 @@ export function QuickAddView({
 
               try {
                 setIsSubmitting(true);
-                await createTransaction(
+                const response = await createTransaction(
                   selectedWalletId,
                   parsedAmount,
                   mode,
                   mode === "income" ? "" : selectedTag,
                   description.trim() || undefined,
                 );
-                onTransactionCreated?.();
+                onTransactionCreated?.(response.newWalletBalance);
                 onBack();
               } catch (error) {
                 console.error("Failed to create transaction:", error);

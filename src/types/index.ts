@@ -80,6 +80,8 @@ export interface IDeleteWalletResponse {
 export interface ICreateTransactionResponse {
   message: string;
   transaction: Transaction;
+  currentBalance?: number;
+  newWalletBalance?: number;
 }
 
 export interface IGetTransactionsResponse {
@@ -93,6 +95,8 @@ export interface IGetTransactionsResponse {
 export interface IDeleteTransactionResponse {
   message: string;
   transaction: Transaction;
+  currentBalance?: number;
+  newWalletBalance?: number;
 }
 
 // --- Analytics Types ---

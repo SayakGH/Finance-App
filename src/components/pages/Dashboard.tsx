@@ -32,8 +32,14 @@ export default function Dashboard() {
               onBack={() => setIsAddingTransaction(false)}
               defaultWalletId={selectedWallet?.id}
               defaultMode={quickAddMode}
-              onTransactionCreated={() => {
+              onTransactionCreated={(newWalletBalance) => {
                 setWalletDetailRefreshSignal((prev) => prev + 1);
+                if (selectedWallet && typeof newWalletBalance === "number") {
+                  setSelectedWallet({
+                    ...selectedWallet,
+                    balance: newWalletBalance,
+                  });
+                }
               }}
             />
           </main>
@@ -47,6 +53,11 @@ export default function Dashboard() {
               {selectedWallet ? (
                 <WalletDetailView
                   wallet={selectedWallet}
+                  onWalletBalanceChange={(newBalance) => {
+                    setSelectedWallet((prev) =>
+                      prev ? { ...prev, balance: newBalance } : prev,
+                    );
+                  }}
                   onBack={() => setSelectedWallet(null)}
                   onAddTransaction={(type) => {
                     setQuickAddMode(type);
