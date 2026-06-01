@@ -14,6 +14,7 @@ export interface Transaction {
   amount: number;
   type: "income" | "expense";
   category: string;
+  description?: string;
   createdAt: string;
   updatedAt?: string;
   userId: string;
@@ -83,6 +84,10 @@ export interface ICreateTransactionResponse {
 
 export interface IGetTransactionsResponse {
   transactions: Transaction[];
+  page?: number;
+  limit?: number;
+  totalItems?: number;
+  totalPages?: number;
 }
 
 export interface IDeleteTransactionResponse {

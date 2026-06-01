@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Delete, ArrowRight } from "lucide-react";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import {
   Select,
   SelectContent,
@@ -34,6 +35,7 @@ export function QuickAddView({
     defaultMode ?? "expense",
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [description, setDescription] = useState("");
 
   // Tags State
   const [tags] = useState([
@@ -182,6 +184,16 @@ export function QuickAddView({
                 </div>
               </>
             )}
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">
+              Description (optional)
+            </p>
+            <Input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Add a note"
+              className="h-10 rounded-md"
+              maxLength={100}
+            />
           </div>
         </div>
 
@@ -220,6 +232,7 @@ export function QuickAddView({
                   parsedAmount,
                   mode,
                   mode === "income" ? "" : selectedTag,
+                  description.trim() || undefined,
                 );
                 onTransactionCreated?.();
                 onBack();

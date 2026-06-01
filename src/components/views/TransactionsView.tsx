@@ -73,6 +73,9 @@ export function TransactionsView() {
                   <p className="font-medium text-sm">
                     {tx.category || (tx.type === "income" ? "Income" : "Uncategorized")}
                   </p>
+                  {tx.description && (
+                    <p className="text-xs text-muted-foreground">{tx.description}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     {formatIndianDateTime(tx.createdAt)}
                   </p>

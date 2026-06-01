@@ -10,7 +10,12 @@ import {
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { deleteTransaction, getTransactions } from "@/api/transactions";
+import { Input } from "../ui/input";
+import {
+  deleteTransaction,
+  getTransactions,
+  searchTransactions,
+} from "@/api/transactions";
 import type { AppWallet, Transaction } from "../../types";
 
 interface WalletDetailViewProps {
@@ -47,23 +52,46 @@ export function WalletDetailView({
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(
     null,
   );
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     const fetchWalletTransactions = async () => {
       try {
         setIsLoading(true);
-        const response = await getTransactions(wallet.id);
-        setWalletTransactions(response.transactions ?? []);
+        const normalizedSearch = searchText.trim();
+        const response = normalizedSearch
+          ? await searchTransactions(wallet.id, normalizedSearch, page, limit)
+          : await getTransactions(wallet.id, page, limit);
+        const fetchedTransactions = response.transactions ?? [];
+        setWalletTransactions(fetchedTransactions);
+        setTotalPages(
+          response.totalPages && response.totalPages > 0
+            ? response.totalPages
+            : fetchedTransactions.length === limit
+              ? page + 1
+              : page,
+        );
       } catch (error) {
         console.error("Failed to fetch wallet transactions:", error);
         setWalletTransactions([]);
+        setTotalPages(1);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchWalletTransactions();
-  }, [wallet.id, refreshSignal]);
+  }, [wallet.id, refreshSignal, page, searchText]);
+
+  useEffect(() => {
+    setPage(1);
+    setSearchInput("");
+    setSearchText("");
+  }, [wallet.id]);
 
   const handleDeleteTransaction = async (transactionId: string) => {
     try {
@@ -135,6 +163,32 @@ export function WalletDetailView({
         <h3 className="text-lg font-semibold tracking-tight mb-4">
           Past Transactions
         </h3>
+        <div className="mb-4 flex items-center gap-2">
+          <Input
+            placeholder="Search by description"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+          <Button
+            variant="outline"
+            onClick={() => {
+              setPage(1);
+              setSearchText(searchInput.trim());
+            }}
+          >
+            Search
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setPage(1);
+              setSearchInput("");
+              setSearchText("");
+            }}
+          >
+            Clear All
+          </Button>
+        </div>
         {isLoading ? (
           <div className="text-center py-10 text-muted-foreground text-sm">
             Loading transactions...
@@ -164,6 +218,9 @@ export function WalletDetailView({
                     <p className="font-semibold text-sm tracking-tight">
                       {tx.category || (tx.type === "income" ? "Income" : "Uncategorized")}
                     </p>
+                    {tx.description && (
+                      <p className="text-xs text-muted-foreground">{tx.description}</p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {formatIndianDateTime(tx.createdAt)}
                     </p>
@@ -190,6 +247,23 @@ export function WalletDetailView({
             ))}
           </div>
         )}
+        <div className="flex items-center justify-between gap-3 pt-3">
+          <Button
+            variant="outline"
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            disabled={isLoading || page === 1}
+          >
+            Previous
+          </Button>
+          <p className="text-sm text-muted-foreground">Page {page}</p>
+          <Button
+            variant="outline"
+            onClick={() => setPage((prev) => prev + 1)}
+            disabled={isLoading || page >= totalPages}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

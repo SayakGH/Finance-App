@@ -13,10 +13,11 @@ export const createTransaction = async (
   amount: number,
   type: "income" | "expense",
   category: string,
+  description?: string,
 ) => {
   const res = await api.post<ICreateTransactionResponse>(
     "/transactions",
-    { walletId, category, amount, type },
+    { walletId, category, amount, type, description },
     {
       headers: {
         Authorization: `Bearer ${getToken()}`,
@@ -26,15 +27,35 @@ export const createTransaction = async (
   return res.data;
 };
 
-export const getTransactions = async (walletId: string) => {
+export const getTransactions = async (
+  walletId: string,
+  page = 1,
+  limit = 10,
+) => {
   const res = await api.get<IGetTransactionsResponse>(
     `/transactions/${walletId}`,
     {
+      params: { page, limit },
       headers: {
         Authorization: `Bearer ${getToken()}`,
       },
     },
   );
+  return res.data;
+};
+
+export const searchTransactions = async (
+  walletId: string,
+  search: string,
+  page = 1,
+  limit = 10,
+) => {
+  const res = await api.get<IGetTransactionsResponse>(`/transactions/search`, {
+    params: { walletId, search, page, limit },
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
   return res.data;
 };
 
