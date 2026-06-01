@@ -279,7 +279,7 @@ export function WalletDetailView({
             ))}
           </div>
         )}
-        {(totalItems > 10 || page !== 1) && (
+        {(totalItems == 10 || page !== 1) && (
           <div className="flex items-center justify-between gap-3 pt-3">
             <Button
               variant="outline"

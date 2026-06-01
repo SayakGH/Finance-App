@@ -2,6 +2,7 @@ import api from "./axios";
 import type {
   IAuthResponse,
   ILogoutResponse,
+  IUpdatePasswordResponse,
   IUpdateUserResponse,
   IValidateTokenResponse,
 } from "@/types";
@@ -60,6 +61,23 @@ export const updateUserName = async (name: string) => {
   const res = await api.patch<IUpdateUserResponse>(
     "/auth/update",
     { name },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+  return res.data;
+};
+
+export const updatePassword = async (
+  currentPassword: string,
+  newPassword: string,
+) => {
+  const token = getToken();
+  const res = await api.patch<IUpdatePasswordResponse>(
+    "/auth/update-password",
+    { currentPassword, newPassword },
     {
       headers: {
         Authorization: `Bearer ${token}`,

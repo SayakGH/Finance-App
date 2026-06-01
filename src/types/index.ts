@@ -46,6 +46,11 @@ export interface IUpdateUserResponse {
   user: IUser;
 }
 
+export interface IUpdatePasswordResponse {
+  message?: string;
+  success?: boolean;
+}
+
 export interface IUser {
   name: string;
   _id: string;

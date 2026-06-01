@@ -7,8 +7,17 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Switch } from "../ui/switch";
 import { Label } from "../ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 import { useTheme } from "../theme-provider";
-import { logoutUser, updateUserName } from "@/api/auth";
+import { logoutUser, updatePassword, updateUserName } from "@/api/auth";
 
 function formatDisplayName(rawName: string, maxLength = 12) {
   if (!rawName) return "User";
@@ -36,6 +45,10 @@ export function SettingsView() {
   const navigate = useNavigate();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [isPasswordUpdating, setIsPasswordUpdating] = useState(false);
 
   const storedName = localStorage.getItem("name") || "User";
   const [fullName, setFullName] = useState(storedName);
@@ -127,13 +140,93 @@ export function SettingsView() {
             </div>
 
             {/* Security Link */}
-            <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-accent/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium text-sm">Security & Privacy</span>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </div>
+            <Dialog
+              open={isPasswordDialogOpen}
+              onOpenChange={(open) => {
+                setIsPasswordDialogOpen(open);
+                if (!open) {
+                  setCurrentPassword("");
+                  setNewPassword("");
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-accent/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Shield className="h-5 w-5 text-muted-foreground" />
+                    <span className="font-medium text-sm">Change Password</span>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Update Password</DialogTitle>
+                  <DialogDescription>
+                    Enter your current password and a new password.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="current-password">Current Password</Label>
+                    <Input
+                      id="current-password"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsPasswordDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    disabled={isPasswordUpdating}
+                    onClick={async () => {
+                      const trimmedCurrent = currentPassword.trim();
+                      const trimmedNew = newPassword.trim();
+
+                      if (!trimmedCurrent || !trimmedNew) {
+                        toast.error("Both password fields are required");
+                        return;
+                      }
+
+                      try {
+                        setIsPasswordUpdating(true);
+                        const response = await updatePassword(
+                          trimmedCurrent,
+                          trimmedNew,
+                        );
+                        toast.success(response.message || "Password updated");
+                        setIsPasswordDialogOpen(false);
+                      } catch (error: any) {
+                        toast.error(
+                          error?.response?.data?.message ||
+                            "Failed to update password",
+                        );
+                      } finally {
+                        setIsPasswordUpdating(false);
+                      }
+                    }}
+                  >
+                    {isPasswordUpdating ? "Updating..." : "Update Password"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
       </div>
